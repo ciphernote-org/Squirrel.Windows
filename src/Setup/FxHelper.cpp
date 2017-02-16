@@ -144,12 +144,12 @@ HRESULT CFxHelper::InstallDotNetFramework(bool isQuiet)
 		};
 
 		dlg.SetButtons(buttons, 2);
-		dlg.SetMainInstructionText(L"Install .NET 4.5");
-		dlg.SetContentText(L"This application requires the .NET Framework 4.5. Click the Install button to get started.");
+		dlg.SetMainInstructionText(L"Install .NET 4.6.2");
+		dlg.SetContentText(L"This application requires the .NET Framework 4.6.2. Click the Install button to get started.");
 		dlg.SetMainIcon(TD_INFORMATION_ICON);
 
 		dlg.SetExpandedInformationText(
-				L"This application requires .NET Framework 4.5 or above. Clicking "
+				L"This application requires .NET Framework 4.6.2 or above. Clicking "
 				L"the Install button will download the latest version of this operating "
 				L"system component from Microsoft and install it on your PC.");
 

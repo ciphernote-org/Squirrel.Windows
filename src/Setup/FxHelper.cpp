@@ -4,7 +4,9 @@
 
 // http://msdn.microsoft.com/en-us/library/hh925568(v=vs.110).aspx#net_b
 static const wchar_t* ndpPath = L"SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full";
-static const int fx45ReleaseVersion = 378389;
+
+static const int fx462Win10AnniversaryReleaseVersion = 394802;
+static const int fx462ReleaseVersion = 394806;
 
 // According to https://msdn.microsoft.com/en-us/library/8z6watww%28v=vs.110%29.aspx,
 // to install .NET 4.5 we must be Vista SP2+, Windows 7 SP1+, or later.
@@ -14,7 +16,51 @@ bool CFxHelper::CanInstallDotNet4_5()
 	return IsWindowsVistaOrGreater();
 }
 
-bool CFxHelper::IsDotNet45OrHigherInstalled()
+bool CFxHelper::VerifyOsVersion(const DWORD major, const DWORD minor)
+{
+	OSVERSIONINFOEXW osvi;
+	DWORDLONG dwlConditionMask = 0;
+	ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
+	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+
+	osvi.dwMajorVersion = major;
+	osvi.dwMinorVersion = minor;
+	osvi.dwPlatformId = VER_PLATFORM_WIN32_NT;
+
+	VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, VER_GREATER_EQUAL);
+	VER_SET_CONDITION(dwlConditionMask, VER_MINORVERSION, VER_GREATER_EQUAL);
+	VER_SET_CONDITION(dwlConditionMask, VER_PLATFORMID, VER_EQUAL);
+
+	const BOOL ret = VerifyVersionInfo(&osvi, VER_MAJORVERSION | VER_MINORVERSION | VER_PLATFORMID, dwlConditionMask);
+	return (ret != FALSE);
+}
+
+bool CFxHelper::VerifyOsBuild(const DWORD build)
+{
+	OSVERSIONINFOEXW osvi;
+	DWORDLONG dwlConditionMask = 0;
+	ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
+	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+
+	osvi.dwBuildNumber = build;
+	osvi.dwPlatformId = VER_PLATFORM_WIN32_NT;
+
+	VER_SET_CONDITION(dwlConditionMask, VER_BUILDNUMBER, VER_GREATER_EQUAL);
+	VER_SET_CONDITION(dwlConditionMask, VER_PLATFORMID, VER_EQUAL);
+
+	const BOOL ret = VerifyVersionInfo(&osvi, VER_BUILDNUMBER, dwlConditionMask);
+	return (ret != FALSE);
+}
+
+bool CFxHelper::IsWindows10AnniversaryUpdate()
+{
+	bool isWin10 = VerifyOsVersion(10, 0);
+	bool isAnniversaryUpdate = VerifyOsBuild(14393);
+
+	return isWin10 && isAnniversaryUpdate;
+}
+
+bool CFxHelper::IsDotNet462OrHigherInstalled()
 {
 	ATL::CRegKey key;
 
@@ -22,9 +68,13 @@ bool CFxHelper::IsDotNet45OrHigherInstalled()
 		return false;
 	}
 
+	DWORD versionToCompare = IsWindows10AnniversaryUpdate() ? 
+		fx462Win10AnniversaryReleaseVersion :
+		fx462ReleaseVersion;
+
 	DWORD dwReleaseInfo = 0;
 	if (key.QueryDWORDValue(L"Release", dwReleaseInfo) != ERROR_SUCCESS ||
-			dwReleaseInfo < fx45ReleaseVersion) {
+			dwReleaseInfo < versionToCompare) {
 		return false;
 	}
 

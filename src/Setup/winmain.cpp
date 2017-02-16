@@ -61,7 +61,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		goto out;
 	}
 
-	if (!CFxHelper::IsDotNet45OrHigherInstalled()) {
+	if (!CFxHelper::IsDotNet462OrHigherInstalled()) {
 		hr = CFxHelper::InstallDotNetFramework(isQuiet);
 		if (FAILED(hr)) {
 			exitCode = hr; // #yolo
